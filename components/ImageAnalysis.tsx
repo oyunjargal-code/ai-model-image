@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import Markdown from "react-markdown";
 
 export default function ImageAnalysis() {
   const [image, setImage] = useState<File | null>(null);
@@ -58,7 +59,7 @@ export default function ImageAnalysis() {
         {summary && (
           <div>
             <p className="font-semibold">📋 Here is the summary</p>
-            <p className="text-gray-700 mt-2">{summary}</p>
+            <Markdown>{summary}</Markdown>
           </div>
         )}
       </CardContent>

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { InferenceClient } from "@huggingface/inference";
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
+const client = new InferenceClient(process.env.HF_TOKEN);
 
 export async function POST(request: Request) {
   try {
@@ -15,20 +15,36 @@ export async function POST(request: Request) {
     const bytes = await image.arrayBuffer();
     const base64 = Buffer.from(bytes).toString("base64");
 
-    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+    const chatCompletion = await client.chatCompletion({
+      model: "moonshotai/Kimi-K2.5:novita",
+      messages: [
+        {
+          role: "user",
+          content: [
+            {
+              type: "text",
+              text: `
+              You are master chief.
 
-    const result = await model.generateContent([
-      {
-        inlineData: {
-          mimeType: image.type,
-          data: base64,
+              Describe in 1 sentence what kind of food this picture is
+              - instructions
+              - ingredient quantities
+              `,
+            },
+            {
+              type: "image_url",
+              image_url: {
+                url: base64,
+              },
+            },
+          ],
         },
-      },
-      "Describe this food image in detail. What dish is it? What ingredients can you see?",
-    ]);
+      ],
+    });
 
-    const text = result.response.text();
-    return NextResponse.json({ summary: text });
+    return NextResponse.json({
+      summary: chatCompletion.choices[0].message.content,
+    });
   } catch (error) {
     console.error("Алдаа:", error);
     return NextResponse.json({ error: "Алдаа гарлаа" }, { status: 500 });
